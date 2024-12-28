@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api context="/user-mangement" name="userManagement" xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="POST" uri-template="/users">
+        <inSequence>
+            <log description="Start" level="full">
+                <property name="Start" value="st"/>
+            </log>
+            <validate cache-schema="true" source="json-eval($.)">
+                <schema key="conf:myresources/ValidateRequestBody.json"/>
+                <on-fail>
+                    <property name="ERROR_EXCEPTION" scope="default" type="STRING" value="WRONG REQUEST BODY"/>
+                    <sequence key="FaultSeq"/>
+                </on-fail>
+            </validate>
+            <log level="custom">
+                <property name="add" value="addd"/>
+            </log>
+            <call-template description="Request" onError="FaultSeq" target="AuditSequence">
+                <with-param name="FlowType" value="Request"/>
+                <with-param name="ServiceName" value="Create User"/>
+            </call-template>
+            <property name="responseValue" scope="default" type="STRING" value=""/>
+            <call-template description="INT_Request" target="AuditSequence">
+                <with-param name="FlowType" value="INT_Request"/>
+                <with-param name="ServiceName" value="Create User"/>
+            </call-template>
+            <dataServiceCall description="Create User" serviceName="DataService">
+                <operations type="single">
+                    <operation name="CreateUserOperation">
+                        <param evaluator="json" expression="json-eval($.user.firstName)" name="firstName"/>
+                        <param evaluator="json" expression="json-eval($.user.lastName)" name="lastName"/>
+                        <param evaluator="json" expression="json-eval($.user.email)" name="email"/>
+                        <param evaluator="json" expression="json-eval($.user.phone)" name="phone"/>
+                    </operation>
+                </operations>
+                <source type="inline"/>
+                <target type="body"/>
+            </dataServiceCall>
+            <call-template description="INT_Response" target="AuditSequence">
+                <with-param name="FlowType" value="INT_Response"/>
+                <with-param name="ServiceName" value="Create User"/>
+            </call-template>
+            <loopback/>
+        </inSequence>
+        <outSequence>
+            <call-template description="Response" target="AuditSequence">
+                <with-param name="FlowType" value="Response"/>
+                <with-param name="ServiceName" value="Create User"/>
+            </call-template>
+            <property description="Status_Code" name="HTTP_SC" scope="axis2" type="STRING" value="201"/>
+            <respond/>
+        </outSequence>
+        <faultSequence/>
+    </resource>
+    <resource faultSequence="FaultSeq" methods="GET" uri-template="/users/{userId}">
+        <inSequence>
+            <log description="Request_Id" level="custom">
+                <property expression="$trp:Request_Id" name="REQ"/>
+            </log>
+            <call-template description="Request" target="AuditSequence">
+                <with-param name="ServiceName" value="Get User"/>
+                <with-param name="FlowType" value="Request"/>
+            </call-template>
+            <call-template description="INT_Request" target="AuditSequence">
+                <with-param name="ServiceName" value="Get User"/>
+                <with-param name="FlowType" value="INT_Request"/>
+            </call-template>
+            <dataServiceCall description="Get User" serviceName="DataService">
+                <operations type="single">
+                    <operation name="GetUserOperation">
+                        <param evaluator="xml" expression="$ctx:uri.var.userId" name="userId"/>
+                    </operation>
+                </operations>
+                <source type="inline"/>
+                <target type="body"/>
+            </dataServiceCall>
+            <call-template description="INT_Response" target="AuditSequence">
+                <with-param name="FlowType" value="INT_Response"/>
+                <with-param name="ServiceName" value="Get User"/>
+            </call-template>
+            <log level="custom">
+                <property expression="json-eval($)" name="test"/>
+            </log>
+            <payloadFactory description="Response" media-type="json">
+                <format>
+ {
+    "user": {&#xd;
+				"ID": "$1",&#xd;
+                 "FirstName": "$2",&#xd;
+                  "LastName": "$3",
+                  "Email": "$4",
+                  "Phone": "$5"
+                        }
+}
+                </format>
+                <args>
+                    <arg evaluator="json" expression="$.data.user.ID"/>
+                    <arg evaluator="json" expression="$.data.user.FirstName"/>
+                    <arg evaluator="json" expression="$.data.user.LastName"/>
+                    <arg evaluator="json" expression="$.data.user.Email"/>
+                    <arg evaluator="json" expression="$.data.user.Phone"/>
+                </args>
+            </payloadFactory>
+            <call-template description="Response" onError="FaultSeq" target="AuditSequence">
+                <with-param name="FlowType" value="Response"/>
+                <with-param name="ServiceName" value="Get User"/>
+            </call-template>
+            <respond/>
+        </inSequence>
+        <outSequence/>
+    </resource>
+    <resource faultSequence="FaultSeq" methods="GET" url-mapping="/users">
+        <inSequence>
+            <log level="custom">
+                <property expression="$trp:Request_Id" name="REQ"/>
+            </log>
+            <call-template description="Request" target="AuditSequence">
+                <with-param name="FlowType" value="Request"/>
+                <with-param name="ServiceName" value="Get All Users"/>
+            </call-template>
+            <call-template description="INT_Request" target="AuditSequence">
+                <with-param name="FlowType" value="INT_Request"/>
+                <with-param name="ServiceName" value="Get All Users"/>
+            </call-template>
+            <dataServiceCall description="Get all users" serviceName="DataService">
+                <operations type="single">
+                    <operation name="GetAllUsersOperation"/>
+                </operations>
+                <source type="inline"/>
+                <target type="body"/>
+            </dataServiceCall>
+            <call-template target="AuditSequence">
+                <with-param name="FlowType" value="INT_Response"/>
+                <with-param name="ServiceName" value="Get All Users"/>
+            </call-template>
+            <log level="custom">
+                <property expression="json-eval($.data.users)" name="wa"/>
+            </log>
+            <payloadFactory media-type="json">
+                <format>{&#xd;
+"users":  $1&#xd;
+}</format>
+                <args>
+                    <arg evaluator="json" expression="$.data.users"/>
+                </args>
+            </payloadFactory>
+            <call-template target="AuditSequence">
+                <with-param name="FlowType" value="Response"/>
+                <with-param name="ServiceName" value="Get All Users"/>
+            </call-template>
+            <respond/>
+        </inSequence>
+        <outSequence/>
+    </resource>
+    <resource faultSequence="FaultSeq" methods="DELETE" uri-template="/users/{userId}">
+        <inSequence>
+            <call-template target="AuditSequence">
+                <with-param name="ServiceName" value="Delete User"/>
+                <with-param name="FlowType" value="Request"/>
+            </call-template>
+            <call-template target="AuditSequence">
+                <with-param name="FlowType" value="INT_Request"/>
+                <with-param name="ServiceName" value="Delete User"/>
+            </call-template>
+            <dataServiceCall serviceName="DataService">
+                <operations type="single">
+                    <operation name="DeleteUserOperation">
+                        <param evaluator="xml" expression="$ctx:uri.var.userId" name="userId"/>
+                    </operation>
+                </operations>
+                <source type="inline"/>
+                <target type="body"/>
+            </dataServiceCall>
+            <call-template target="AuditSequence">
+                <with-param name="ServiceName" value="Delete User"/>
+                <with-param name="FlowType" value="INT_Response"/>
+            </call-template>
+            <call-template target="AuditSequence">
+                <with-param name="FlowType" value="Response"/>
+                <with-param name="ServiceName" value="Delete User"/>
+            </call-template>
+            <respond/>
+        </inSequence>
+        <outSequence/>
+    </resource>
+    <resource faultSequence="FaultSeq" methods="PUT" uri-template="/users/{userId}">
+        <inSequence>
+            <validate cache-schema="true">
+                <schema key="conf:myresources/ValidateRequestBody.json"/>
+                <on-fail>
+                    <sequence key="FaultSeq"/>
+                </on-fail>
+            </validate>
+            <call-template target="AuditSequence">
+                <with-param name="ServiceName" value="Update User"/>
+                <with-param name="FlowType" value="Request"/>
+            </call-template>
+            <call-template target="AuditSequence">
+                <with-param name="ServiceName" value="Update User"/>
+                <with-param name="FlowType" value="INT_Request"/>
+            </call-template>
+            <log level="custom"/>
+            <dataServiceCall serviceName="DataService">
+                <operations type="single">
+                    <operation name="UpdateUserOperation">
+                        <param evaluator="json" expression="json-eval($.user.phone)" name="phone"/>
+                        <param evaluator="json" expression="json-eval($.user.email)" name="email"/>
+                        <param evaluator="json" expression="json-eval($.user.firstName)" name="firstName"/>
+                        <param evaluator="json" expression="json-eval($.user.lastName)" name="lastName"/>
+                        <param evaluator="xml" expression="$ctx: uri.var.userId" name="userId"/>
+                    </operation>
+                </operations>
+                <source type="inline"/>
+                <target type="body"/>
+            </dataServiceCall>
+            <call-template target="AuditSequence">
+                <with-param name="FlowType" value="INT_Response"/>
+                <with-param name="ServiceName" value="Update User"/>
+            </call-template>
+            <payloadFactory media-type="json">
+                <format>{&#xd;
+  "user": {&#xd;
+    "firstName": "$1",&#xd;
+    "lastName": "$2",&#xd;
+    "email": "$3",&#xd;
+    "phone": "$4"&#xd;
+  }&#xd;
+}&#xd;
+</format>
+                <args>
+                    <arg evaluator="xml" expression="//user/firstName"/>
+                    <arg evaluator="xml" expression="//user/lastName"/>
+                    <arg evaluator="xml" expression="//user/email"/>
+                    <arg evaluator="xml" expression="//user/phone"/>
+                </args>
+            </payloadFactory>
+            <call-template target="AuditSequence">
+                <with-param name="FlowType" value="Response"/>
+                <with-param name="ServiceName" value="Update User"/>
+            </call-template>
+            <respond/>
+        </inSequence>
+        <outSequence/>
+    </resource>
+    <resource methods="POST GET" uri-template="/test">
+        <inSequence>
+            <!-- set the "name" attribute of the object as property "temp" -->
+            <log/>
+            <foreach expression="//ns:users" id="xd" xmlns:ns="http://ws.wso2.org/dataservice/GetAllUsers">
+                <sequence>
+                    <log level="full">
+                        <property expression="//ns:users/ns:Email" name="Email"/>
+                    </log>
+                    <property expression="//users/FirstName" name="temp" scope="default" type="STRING"/>
+                    <!-- Convert "name" value which can be retrieved from "temp" property to uppercase 
+                and save it in "upperCaseName" property -->
+                    <!-- create the corresponding resulting object -->
+                    <payloadFactory media-type="xml">
+                        <format>
+                            <info xmlns="">
+                                <!-- set 1st arg value as "id" element -->
+                                <id>$1</id>
+                                <!-- set 2nd arg value as "classid" element -->
+                                <classid>$2</classid>
+                                <!-- set 3rd arg value as "name" element -->
+                                <name>$3</name>
+                                <!-- For the following two elements we are hardcoding values -->
+                                <university>University of Moratuwa</university>
+                                <department>CSE</department>
+                            </info>
+                        </format>
+                        <args>
+                            <arg evaluator="xml" expression="//ns:users/ns:ID"/>
+                            <arg evaluator="xml" expression="//ns:users/ns:LastName"/>
+                            <arg evaluator="xml" expression="//ns:users/ns:Email"/>
+                        </args>
+                    </payloadFactory>
+                </sequence>
+            </foreach>
+            <respond/>
+        </inSequence>
+        <outSequence/>
+        <faultSequence/>
+    </resource>
+    <resource methods="GET" uri-template="/test2">
+        <inSequence>
+            <dataServiceCall serviceName="DataService">
+                <operations type="single">
+                    <operation name="GetAllUsersOperation"/>
+                </operations>
+                <source type="inline"/>
+                <target type="body"/>
+            </dataServiceCall>
+            <log level="custom">
+                <property expression="//users/ID" name="rraweae"/>
+            </log>
+            <foreach expression="//users" id="test2for">
+                <sequence>
+                    <payloadFactory media-type="xml">
+                        <format>
+                            <info>
+                                <!-- set 1st arg value as "id" element -->
+                                <id>$1</id>
+                                <!-- set 2nd arg value as "classid" element -->
+                                <classid>$2</classid>
+                                <!-- set 3rd arg value as "name" element -->
+                                <name>$3</name>
+                                <!-- For the following two elements we are hardcoding values -->
+                                <university>University of Moratuwa</university>
+                                <department>CSE</department>
+                            </info>
+                        </format>
+                        <args>
+                            <arg evaluator="xml" expression="//users/ID"/>
+                            <arg evaluator="xml" expression="//users/FirstName"/>
+                            <arg evaluator="xml" expression="//users/Email"/>
+                        </args>
+                    </payloadFactory>
+                </sequence>
+            </foreach>
+            <respond/>
+        </inSequence>
+        <outSequence/>
+        <faultSequence/>
+    </resource>
+    <resource methods="PUT" url-mapping="/testput/{userId}">
+        <inSequence>
+            <log level="custom">
+                <property name="ss" value="ss"/>
+            </log>
+            <respond/>
+        </inSequence>
+        <outSequence/>
+        <faultSequence/>
+    </resource>
+</api>

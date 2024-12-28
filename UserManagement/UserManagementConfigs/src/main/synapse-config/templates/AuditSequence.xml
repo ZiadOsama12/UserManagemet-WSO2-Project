@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template name="AuditSequence" xmlns="http://ws.apache.org/ns/synapse">
+    <parameter defaultValue="" isMandatory="false" name="FlowType"/>
+    <parameter defaultValue="" isMandatory="false" name="ServiceName"/>
+    <sequence>
+        <log level="custom">
+            <property name="aa" value="aa"/>
+        </log>
+        <switch source="$func:FlowType">
+            <case regex="Request">
+                <propertyGroup>
+                    <property name="Source" scope="default" type="STRING" value="API Gateway"/>
+                    <property name="Destination" scope="default" type="STRING" value="MI"/>
+                </propertyGroup>
+            </case>
+            <case regex="INT_Request">
+                <propertyGroup>
+                    <property name="Source" scope="default" type="STRING" value="MI"/>
+                    <property name="Destination" scope="default" type="STRING" value="DBService"/>
+                </propertyGroup>
+            </case>
+            <case regex="INT_Response">
+                <propertyGroup>
+                    <property name="Source" scope="default" type="STRING" value="DBService"/>
+                    <property name="Destination" scope="default" type="STRING" value="MI"/>
+                </propertyGroup>
+            </case>
+            <case regex="Response">
+                <propertyGroup>
+                    <property name="Source" scope="default" type="STRING" value="MI"/>
+                    <property name="Destination" scope="default" type="STRING" value="API Gateway"/>
+                </propertyGroup>
+            </case>
+            <default>
+                <propertyGroup>
+                    <property name="Source" scope="default" type="STRING" value="MI"/>
+                    <property name="Destination" scope="default" type="STRING" value="API Gateway"/>
+                </propertyGroup>
+            </default>
+        </switch>
+        <log level="custom">
+            <property name="hh" value="hh"/>
+        </log>
+        <dataServiceCall serviceName="AuditDataService">
+            <operations type="single">
+                <operation name="CreateAudit">
+                    <param evaluator="xml" expression="$trp:Request_Id" name="CorrelationId"/>
+                    <param evaluator="json" expression="json-eval($.)" name="Message"/>
+                    <param evaluator="xml" expression="$func:ServiceName" name="ServiceName"/>
+                    <param evaluator="xml" expression="get-property('Destination')" name="Destination"/>
+                    <param evaluator="xml" expression="get-property(&quot;SYSTEM_DATE&quot;, &quot;yyyy:MM:dd::HH:mm:ss&quot;)" name="Creationdate"/>
+                    <param name="Param1" value="0"/>
+                    <param evaluator="xml" expression="get-property('Source')" name="Source"/>
+                    <param evaluator="xml" expression="$func:FlowType" name="FlowType"/>
+                </operation>
+            </operations>
+            <source type="inline"/>
+            <target name="responseValue" type="property"/>
+        </dataServiceCall>
+    </sequence>
+</template>

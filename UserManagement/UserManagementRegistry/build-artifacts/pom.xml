@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.example</groupId>
+    <artifactId>UserManagementRegistry</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+  </parent>
+  <groupId>com.example</groupId>
+  <artifactId>UserManagementRegistry_module</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>UserManagementRegistry_module</name>
+  <description>UserManagementRegistry_module</description>
+  <modules>
+    <module>resource/UserManagementFromXMLtoJSON</module>
+    <module>resource/UserManagementFromXMLtoJSON_inputSchema</module>
+    <module>resource/UserManagementFromXMLtoJSON_outputSchema</module>
+    <module>resource/UserManagementFromXMLtoJSON_xsltStyleSheet</module>
+    <module>resource/NewConfig</module>
+    <module>resource/NewConfig_inputSchema</module>
+    <module>resource/NewConfig_outputSchema</module>
+    <module>resource/NewConfig_xsltStyleSheet</module>
+  </modules>
+</project>

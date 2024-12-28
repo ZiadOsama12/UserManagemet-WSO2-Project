@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="FaultSeq" trace="disable" xmlns="http://ws.apache.org/ns/synapse">
+    <log level="custom">
+        <property expression="get-property('ERROR_EXCEPTION')" name="dsad"/>
+    </log>
+    <dataServiceCall serviceName="AuditDataService">
+        <operations type="single">
+            <operation name="CreateErrorOperation">
+                <param evaluator="xml" expression="$trp:Request_Id" name="CorrelationId"/>
+                <param evaluator="xml" expression="get-property('ERROR_MESSAGE')" name="ErrorMessage"/>
+                <param evaluator="xml" expression="get-property('ERROR_DETAIL')" name="ErrorDetails"/>
+                <param evaluator="xml" expression="get-property('ERROR_EXCEPTION')" name="ErrorException"/>
+                <param name="ServiceName" value="service name"/>
+                <param evaluator="xml" expression="get-property(&quot;SYSTEM_DATE&quot;, &quot;yyyy:MM:dd::HH:mm:ss&quot;)" name="CreationDate"/>
+            </operation>
+        </operations>
+        <source type="inline"/>
+        <target name="Res" type="property"/>
+    </dataServiceCall>
+    <call-template target="AuditSequence">
+        <with-param name="FlowType" value="error"/>
+        <with-param name="ServiceName" value="error"/>
+    </call-template>
+    <payloadFactory media-type="json">
+        <format>{&#xd;
+	"Error":"$1",
+     "Error Details" : "$2",&#xd;
+	 "Error Exception": "$3"&#xd;
+}</format>
+        <args>
+            <arg evaluator="xml" expression="$ctx:ERROR_MESSAGE"/>
+            <arg evaluator="xml" expression="$ctx:ERROR_DETAIL"/>
+            <arg evaluator="xml" expression="$ctx:ERROR_EXCEPTION"/>
+        </args>
+    </payloadFactory>
+    <property description="Bad Request" name="HTTP_SC" scope="axis2" type="STRING" value="401"/>
+    <respond/>
+</sequence>

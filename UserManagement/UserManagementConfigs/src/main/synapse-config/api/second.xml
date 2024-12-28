@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api context="/second" name="second" xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="GET" uri-template="/test">
+        <inSequence>
+            <log level="custom">
+                <property name="se" value="se"/>
+            </log>
+            <payloadFactory media-type="json">
+                <format>{&#xd;
+"Hello" :"SW"&#xd;
+}</format>
+                <args/>
+            </payloadFactory>
+            <respond/>
+        </inSequence>
+        <outSequence/>
+        <faultSequence/>
+    </resource>
+    <resource methods="PUT" uri-template="/test22">
+        <inSequence>
+            <log/>
+            <payloadFactory media-type="json">
+                <format>{&#xd;
+	"Hello" : "SQ"&#xd;
+}</format>
+                <args/>
+            </payloadFactory>
+            <respond/>
+        </inSequence>
+        <outSequence/>
+        <faultSequence/>
+    </resource>
+</api>

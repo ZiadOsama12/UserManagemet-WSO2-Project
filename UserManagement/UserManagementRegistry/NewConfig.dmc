@@ -1,0 +1,18 @@
+map_S_data_S_root = function(){ 
+var outputroot={};
+
+outputroot =  {};
+outputroot.user =  {};
+outputroot.user.Email = inputdata.user.Email;
+outputroot.user.FirstName = inputdata.user.FirstName;
+outputroot.user.Phone = inputdata.user.Phone;
+outputroot.user.ID = inputdata.user.ID;
+outputroot.user.LastName = inputdata.user.LastName;
+return outputroot;
+};
+
+
+
+
+
+
